@@ -1,4 +1,6 @@
 {
+  "growthComparison": "看看变化",
+  "growthContinueRecording": "接着记",
   "@@locale": "zh",
   "smartPushPeriodEarlyMorning": "清晨",
   "smartPushPeriodMorning": "上午",

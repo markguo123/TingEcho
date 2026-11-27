@@ -68,6 +68,7 @@ class NoteFullEditorPage extends StatefulWidget {
   final List<NoteTag>? allTags;
   final String? initialAuthor;
   final String? initialWork;
+  final List<String>? initialTagIds;
   final bool skipDefaultMetadataAutofill;
   final bool isRestoredDraft; // 新增：标记是否为恢复的草稿
   final String? restoredDraftId; // 新增：恢复草稿的原始ID
@@ -86,6 +87,7 @@ class NoteFullEditorPage extends StatefulWidget {
     this.allTags,
     this.initialAuthor,
     this.initialWork,
+    this.initialTagIds,
     this.skipDefaultMetadataAutofill = false,
     this.isRestoredDraft = false, // 默认为 false
     this.restoredDraftId, // 恢复草稿的原始ID
@@ -145,7 +147,7 @@ class _NoteFullEditorPageState extends State<NoteFullEditorPage> {
       initialQuote: widget.initialQuote,
       initialAuthor: widget.initialAuthor,
       initialWork: widget.initialWork,
-      initialTagIds: widget.initialQuote?.tagIds,
+      initialTagIds: widget.initialQuote?.tagIds ?? widget.initialTagIds,
     );
     _editorState = NoteEditorState(
       initialPlainText: widget.initialContent,

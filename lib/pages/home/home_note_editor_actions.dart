@@ -47,6 +47,7 @@ class HomeNoteEditorActions {
     String? prefilledContent,
     String? prefilledAuthor,
     String? prefilledWork,
+    List<String>? prefilledTagIds,
     Map<String, dynamic>? hitokotoData,
   }) async {
     if (!_active) return;
@@ -82,11 +83,15 @@ class HomeNoteEditorActions {
     }
 
     final settings = context.read<SettingsService>();
+    final availableTags = readTags().map((tag) => tag.id).toSet();
+    final selectedTagIds =
+        prefilledTagIds?.where(availableTags.contains).toList();
     if (settings.skipNonFullscreenEditor) {
       await _openFullscreenEditor(
         prefilledContent: prefilledContent,
         prefilledAuthor: prefilledAuthor,
         prefilledWork: prefilledWork,
+        prefilledTagIds: selectedTagIds,
         hitokotoData: hitokotoData,
       );
       return;
@@ -99,6 +104,7 @@ class HomeNoteEditorActions {
       prefilledContent: prefilledContent,
       prefilledAuthor: prefilledAuthor,
       prefilledWork: prefilledWork,
+      prefilledTagIds: selectedTagIds,
       hitokotoData: hitokotoData,
       tags: readTags(),
       onSave: (quote) => _save(quote, isEditing: false),
@@ -216,6 +222,7 @@ class HomeNoteEditorActions {
     String? prefilledContent,
     String? prefilledAuthor,
     String? prefilledWork,
+    List<String>? prefilledTagIds,
     Map<String, dynamic>? hitokotoData,
   }) async {
     try {
@@ -246,6 +253,7 @@ class HomeNoteEditorActions {
             allTags: readTags(),
             initialAuthor: author,
             initialWork: work,
+            initialTagIds: prefilledTagIds,
             skipDefaultMetadataAutofill: hasExplicitAuthorOrWork,
             isFromDailyQuote: isHitokotoQuickAdd,
           ),

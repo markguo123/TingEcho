@@ -14,10 +14,12 @@ import '../services/clipboard_service.dart';
 import '../services/connectivity_service.dart';
 import '../services/excerpt_intent_service.dart';
 import '../controllers/search_controller.dart'; // 导入搜索控制器
+import '../models/note_tag.dart';
 import '../models/quote_model.dart';
 import '../widgets/daily_quote_view.dart';
 import '../widgets/note_list_view.dart';
 import 'explore_page.dart';
+import 'home/growth_comparison_page.dart';
 import 'release_notes_page.dart';
 import 'settings_page.dart';
 import 'note_full_editor_page.dart';
@@ -678,7 +680,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _guideCoordinator.unfocusNoteSearch();
   }
 
+  bool _isGrowthTag(NoteTag tag) =>
+      !tag.isDefault && !DatabaseService.systemTagIds.contains(tag.id);
+
   void _showAddQuoteDialog({
+    List<String>? prefilledTagIds,
     String? prefilledContent,
     String? prefilledAuthor,
     String? prefilledWork,
@@ -686,6 +692,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }) {
     unawaited(
       _noteEditorActions.add(
+        prefilledTagIds: prefilledTagIds,
         prefilledContent: prefilledContent,
         prefilledAuthor: prefilledAuthor,
         prefilledWork: prefilledWork,
@@ -697,7 +704,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   // FAB 短按处理
   void _onFABTap() {
     AptabaseHelper.trackEvent('feature_used', {'action': 'create_note'});
-    _showAddQuoteDialog();
+    final selected = _pageController.selectedTagIds;
+    final inTopic = _pageController.currentIndex == 1 &&
+        selected.length == 1 &&
+        _pageController.tags.any(
+          (tag) => tag.id == selected.single && _isGrowthTag(tag),
+        );
+    _showAddQuoteDialog(
+      prefilledTagIds: inTopic ? [selected.single] : null,
+    );
   }
 
   // FAB 长按由捕获模块处理语音与 OCR 的完整交互。
@@ -942,6 +957,49 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       height: screenHeight, // 确保占满整个屏幕高度
                       child: Column(
                         children: [
+                          if (_pageController.tags.any(_isGrowthTag))
+                            SizedBox(
+                              height: kMinInteractiveDimension,
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                children: [
+                                  for (final tag
+                                      in _pageController.tags.where(_isGrowthTag))
+                                    Padding(
+                                      padding: const EdgeInsetsDirectional.only(
+                                        start: 8,
+                                      ),
+                                      child: InputChip(
+                                        label: Text(tag.name),
+                                        deleteIcon: const Icon(Icons.compare_arrows),
+                                        deleteButtonTooltipMessage:
+                                            l10n.growthComparison,
+                                        onDeleted: () {
+                                          Navigator.of(context).push<void>(
+                                            MaterialPageRoute<void>(
+                                              builder: (_) => GrowthComparisonPage(
+                                                tag: tag,
+                                                onAdd: () => _noteEditorActions.add(
+                                                  prefilledTagIds: [tag.id],
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        onPressed: () {
+                                          context
+                                              .read<NoteSearchController>()
+                                              .updateSearch('');
+                                          _pageController.setSelectedTagIds([
+                                            tag.id,
+                                          ]);
+                                          _onTabChanged(1);
+                                        },
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
                           // 每日一言部分 - 占用大部分空间，但保留足够空间给今日思考。
                           //
                           // 卡片刻意撑满这块区域而不是按内容收缩：试过收缩版

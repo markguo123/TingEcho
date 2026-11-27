@@ -1,4 +1,6 @@
 {
+  "growthComparison": "Compare progress",
+  "growthContinueRecording": "Keep recording",
   "@@locale": "en",
   "smartPushPeriodEarlyMorning": "Early Morning",
   "smartPushPeriodMorning": "Morning",
